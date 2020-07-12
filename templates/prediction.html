@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Summary</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+  <link rel="stylesheet" href="static/css/style.css">
+ </head>
+
+<body id="mainbody">
+    <!--Navbar adjustments-->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand text-white" href="{{ url_for('prediction') }}"  >Investment Returns Predictor</a>
+            <img src="https://media.giphy.com/media/9HQRIttS5C4Za/giphy.gif" alt="Show Me The Money" width="200" height="100">
+            <img src="https://media.giphy.com/media/3o6gDWzmAzrpi5DQU8/giphy.gif" alt="Kim Kardashian" width="200" height="100">
+            <img src="https://media.giphy.com/media/3o85xuCfqwYKuNI7Li/giphy.gif" alt="Kim Kardashian" width="200" height="100">
+            <a class="lead btn btn-outline-warning btn-lg" href="{{ url_for('home') }}" role="button">Back to Home Page</a>
+            &emsp;&emsp;&emsp;
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <!-- <nav class="navbar navbar-expand-lg navbar-light bg-light">
+                <a id="Latcolormain" class="navbar-brand" href="HW1.html">Latitude</a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon"></span>
+                </button> -->
+            
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav ml-auto">    
+                    <li class="nav-item dropdown">
+                        <!-- <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Check Weather & Auspicious Conditions
+                        </a> -->
+                        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <!-- <a class="nav-link" href="comparison.html">Comparison</a> -->
+                    </li>
+                    <li class="nav-item">
+                        <!-- <a class="nav-link" href="data.html">Data</a> -->
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+    <!--create container, rows and columns and add images -->
+    <div class="container content">    
+        <div class="row">
+            <div class="col-md-8">
+                <div class="col-md-12 md12">
+                    <h3 id="head3">Investment Calculator</h3>
+                    <hr>
+                    &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;
+                    <label> Industry </label>
+                    &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;
+                    <label> Company </label>
+                    &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;
+                    <label> Amount </label>
+                    <br>
+
+                    <label for="inv1">&nbsp;&nbsp;&nbsp;&nbsp;Choose an Investment:</label>
+                    &nbsp;&nbsp;
+                        <select name="invest1" id="investments1">
+                        </select>
+                        &nbsp;&nbsp;&nbsp;&nbsp;
+                        <select name="Company1" id="Company1">
+                        </select>
+                        &nbsp;&nbsp;&nbsp;&nbsp;
+                        <select name="Amount1" id="Amount1">
+                        </select>
+                    <br>
+                    <label for="inv2">&nbsp;&nbsp;&nbsp;&nbsp;Choose an Investment:</label>
+                    &nbsp;&nbsp;
+                        <select name="invest2" id="investments2">
+                        </select>
+                        &nbsp;&nbsp;&nbsp;&nbsp;
+                        <select name="Company2" id="Company2">
+                        </select>
+                        &nbsp;&nbsp;&nbsp;&nbsp;
+                        <select name="Amount2" id="Amount2">
+                        </select>
+                    <br>
+                    <label for="inv3">&nbsp;&nbsp;&nbsp;&nbsp;Choose an Investment:</label>
+                    &nbsp;&nbsp;
+                        <select name="invest3" id="investments3">
+                        </select>
+                        &nbsp;&nbsp;&nbsp;&nbsp;
+                        <select name="Company3" id="Company3">
+                        </select>
+                         &nbsp;&nbsp;&nbsp;&nbsp;
+                        <select name="Amount3" id="Amount3">
+                        </select>
+                    <br>
+                    <label for="inv4">&nbsp;&nbsp;&nbsp;&nbsp;Choose an Investment:</label>
+                    &nbsp;&nbsp;
+                        <select name="invest4" id="investments4">
+                        </select>
+                        &nbsp;&nbsp;&nbsp;&nbsp;
+                        <select name="Company4" id="Company4">
+                        </select>
+                        &nbsp;&nbsp;&nbsp;&nbsp;
+                        <select name="Amount4" id="Amount4">
+                        </select>
+                    <br>
+                    <label for="inv5">&nbsp;&nbsp;&nbsp;&nbsp;Choose an Investment:</label>
+                    &nbsp;&nbsp;
+                    <select name="invest5" id="investments5">
+                    </select>
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    <select name="Company5" id="Company5">
+                    </select>
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    <select name="Amount5" id="Amount5">
+                    </select>
+                    <br>
+                    <br>
+                    <label for="years">&nbsp;&nbsp;&nbsp;&nbsp;No of Years would you like to invest:</label>
+                    &nbsp;&nbsp;
+                    <select name="years" id="years">
+                    </select>
+                    <br>
+                    <br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<button id="button">Calculate the Investment Return</button>
+                    &emsp;&emsp;
+                    <label id="portfolio">  </label>
+                    &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp;
+                    <label id="ROI">  </label>
+              </div>
+            </div>
+            <!--visualization adjustments-->
+            <div class="col-md-4">
+                <div class="col-md-12 md12">
+                    <h3 id="head3"> Top 20 Companies</h3>
+                    <h6> (Industry - Company - Closing Price - Average Growth)</h6>
+                    <hr>
+                     <ul id="TOP10">
+                    </ul>
+                 </div>
+            </div>
+        </div>
+    </div>
+ </div>
+ </div>
+ <div class="container content">    
+    <div class="row">
+        <div class="col-md-12">
+            <div class="col-md-12 md12">
+            <div id="bar"></div>
+        </div>
+    </div>
+</div>
+    <!-- Footer -->
+    <footer class="page-footer font-small footer-dark">
+        <div class="footer-copyright text-center py-3">© Copyright Ram Sake - Ravi Selva - Travis Company Limited 2020
+        </div>      
+    </footer>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.5.0/d3.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="static/js/app2.js"></script>
+</body>
+</html>

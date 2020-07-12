@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel=”stylesheet” href=”css/bootstrap.css”>
+  <link rel=”stylesheet” href=”css/bootstrap-responsive.css”>
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Stock Prediction</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="../static/css/style.css">
+</head>
+
+<body>
+
+  <div class="container">
+    <div class="row">
+      <div id="one" class="col-md-12 jumbotron text-center" style="height: 170px;">
+        <h2>Stock Trends (S&P 500) and Prediction of Return on Investment (ROI)</h2>
+        <p class="lead">Use the interactive charts below to explore the stock trends</p>
+        <a class="lead btn btn-primary btn-lg" href="{{ url_for('prediction') }}" role="button">Get Prediction NOW</a>
+        <!-- <a class=”btn btn-primary” href=”#” role=”button”>Get Prediction NOW</a> -->
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-2 position-static">
+        <div class="well">
+          <h5> Stock GICS Sector :  </h5>
+          <select id="selSector" ></select>
+          <p></p>
+          <h5>Stock Symbol:</h5>
+          <select id="selSymbol" ></select>
+        </div>
+        <div class="panel panel-primary">
+          <div class="panel-heading">
+            <h3 class="panel-title">Stock Info</h3>
+          </div>
+          <div id="stock-metadata" class="panel-body"></div>
+        </div>
+      </div>
+      <div class="col-md-5">
+        <div id="funnel"></div>
+      </div>
+      <div class="col-md-5">
+        <div id="hbar"></div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
+        <div id="candle"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+  <nav class="fixed-bottom font-small"></nav>
+    <div class="text-center font-small"> &copy; Copyright Coding Bootcamp 2020 </div>
+  </nav>
+</footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.5.0/d3.js"></script>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  <script src="../static/js/app.js"></script>
+  
+</body>
+
+</html>
