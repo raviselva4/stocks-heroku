@@ -1,0 +1,5 @@
+stock_api_key = "S2Q31T0C29CO77S1"
+db_host = "localhost"
+db_port = "5432"
+db_pass = "postgresus8"
+db_name = "stock"

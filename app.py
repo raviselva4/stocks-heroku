@@ -11,7 +11,8 @@ from flask import Flask, render_template, jsonify
 from sqlalchemy import create_engine, MetaData
 warnings.filterwarnings('ignore')
 from pprint import pprint
-from config import *
+# from config import *
+from config import stock_api_key,db_pass,db_host,db_port,db_name
 logger = logging.Logger('catch_all')
 
 # Flask Setup
@@ -23,8 +24,24 @@ function = "function=TIME_SERIES_DAILY"
 output="&outputsize=full"
 key = f"&apikey={stock_api_key}"
 
-# PostgreSQL connection and creating session
-connect_str = 'postgresql://postgres:'+db_pass+'@'+db_host+':'+db_port+'/'+db_name
+# I believe there is no need to configure app.config because this application is 
+# using only create_engine to connect the database....
+
+# PostgreSQL connection based on env setting
+ENV = "development"
+if ENV == "development":
+    print("Connecting to local database....")
+    app.debug = True
+    connect_str = 'postgresql://postgres:'+db_pass+'@'+db_host+':'+db_port+'/'+db_name
+    # app.config['SQLALCHEMY_DATABASE_URI'] = connect_str
+else:
+    print("Connecting to heroku database....")
+    app.debug = False
+    connect_str = "postgres://ooxebzekmvogyk:1283445a90bb1af21f0b6f6b103b341d026fbc796299ab31a6bfbbec2845d134@ec2-34-206-31-217.compute-1.amazonaws.com:5432/d6rl34jav3t6tn"
+    # app.config['SQLALCHEMY_DATABASE_URI'] = connect_str
+# Remove tracking modifications
+# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
 engine = create_engine(connect_str)
 connection = engine.connect()
 
@@ -269,4 +286,4 @@ def top_performer5(year,sector):
 
 #
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()
