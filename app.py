@@ -28,7 +28,7 @@ key = f"&apikey={stock_api_key}"
 # using only create_engine to connect the database....
 
 # PostgreSQL connection based on env setting
-ENV = "development"
+ENV = "qa"
 if ENV == "development":
     print("Connecting to local database....")
     app.debug = True
