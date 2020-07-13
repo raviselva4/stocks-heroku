@@ -132,7 +132,7 @@ def stockdata():
             print(f"Retrieving Stock data from Alphavantage website for the symbol {row['symbol']}")
             symbol = "&symbol="+row['symbol']
             query_url = url+function+key+symbol+output
-            print(query_url)
+            # print(query_url)
             response = requests.get(query_url).json()
             time.sleep(13)
             print("Request completed, converting to dataframe and trying to push it to the database")
