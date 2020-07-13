@@ -7,8 +7,10 @@ import time
 import warnings
 import logging
 import sqlalchemy
+import os
+import psycopg2
 from flask import Flask, render_template, jsonify
-from sqlalchemy import create_engine, MetaData
+from sqlalchemy import create_engine, MetaData, text
 warnings.filterwarnings('ignore')
 from pprint import pprint
 # from config import *
@@ -91,13 +93,13 @@ def sp500():
         f"Records Pushed to Postgres database...<br/>"
         )
 # To get daily stock data from alphavantage website using API and push it to postgres database
+# Run this after /sp500 route
 @app.route("/getstock_data")
 def stockdata():
     print("Server received request for 'getstock_data' data collection page...")
     # This is not required for keroku postgres db as we created empty table structure when setting up heroku
     if ENV == "development":
         print("Running create table if not exists only for local database")
-        import psycopg2
         conn = psycopg2.connect(database = db_name, user = "postgres", password=db_pass, host=db_host, port=db_port)
         command = (
         """
@@ -150,7 +152,9 @@ def stockdata():
                 }
             dcnt = results_df2['open'].count()
             if dcnt > 0:
+                print("Dataframe completed, and now pushing to the database")
                 results_df2.to_sql(name="stock_daily", con=engine, if_exists='append', index=False, dtype=stock_type)
+                print("Records pushed to the database and going to process next stock symbol...")
         except Exception as e:
             logger.error('Failed to retreive stock data for the symbol:'+ row['symbol'] + ' Error : ' + str(e))
             err_symbol.append(row['symbol'])
@@ -166,6 +170,7 @@ def stockdata():
                 etime = time.time() + 60
         if index > 498:
             print("Reached maximum limit of 500 rows, existing the for loop...")
+            mes="Reached maximum limit of 500 rows, existing the for loop..."
             break
     print(" ")
     print(f"End of processing {index+1} records in {round((time.time()-start_time)/60,4)} minutes!!! ")
@@ -180,7 +185,55 @@ def stockdata():
         f" <br/>"
         f"Here are the list of symbol(s) ends with error: {err_symbol}  <br/>"
         f" <br/>"
+        f"{mes}"
+        f" <br/>"
         f"If you see any errors like 'Expecting value: line 1 column 1 (char 0)' then you may rerun the same route after some time until you get no errors.  <br/>"
+    )
+
+# To create base views for stock_performance table  
+# to be run after /getstock_data route
+@app.route("/create_views")
+def views():
+    print("Server received request for 'Create views and performance table..' page...")
+    sfile = open('dbscripts/create_perf_views.sql')
+    dbscript = sqlalchemy.text(sfile.read())
+    engine.execute(dbscript)
+    # connection.execute(text("dbscripts/create_perf_views.sql")).execution_options(autocommit=True)
+    # import urllib.parse as urlparse
+    # hurl = urlparse.urlparse(os.environ['DATABASE_URL'])
+    # hdbname = url.path[1:]
+    # huser = url.username
+    # hpassword = url.password
+    # hhost = url.hostname
+    # hport = url.port
+
+    # hcon = psycopg2.connect(
+    #             dbname=hdbname,
+    #             user=huser,
+    #             password=hpassword,
+    #             host=hhost,
+    #             port=hport
+    #             )
+    # with self.hcon as cursor:
+    #     cursor.executescript(open("dbscripts/create_perf_views.sql", "r").read())
+    # with open('dbscripts/create_perf_views.sql') as script:
+    #     cursor.execute(script.read().decode('utf-8'), multi=True)
+    return(
+        f"<br/>"
+        f"DB views created..."
+        f"<br/>"
+    )
+# To create stock_performace table 
+# Run after /create_views route
+@app.route("/create_stock_performance")
+def basetable():
+    sfile = open('dbscripts/create_stock_performance.sql')
+    dbscript = sqlalchemy.text(sfile.read())
+    engine.execute(dbscript)
+    return(
+        f"<br/>"
+        f"stock_performance table created..."
+        f"<br/>"
     )
 
 # To pull all sectors from postgres database
