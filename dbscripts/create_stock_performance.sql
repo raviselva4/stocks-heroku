@@ -20,4 +20,4 @@ select * from perf_year9
 union
 select * from perf_year10
 order by 2,1;
-
+create index if not exists stockdt on stock_daily(stock_date);
