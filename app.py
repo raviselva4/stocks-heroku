@@ -14,6 +14,7 @@ from pprint import pprint
 # from config import *
 from config import stock_api_key,db_pass,db_host,db_port,db_name
 logger = logging.Logger('catch_all')
+# import subprocess
 
 # Flask Setup
 app = Flask(__name__)
@@ -38,6 +39,8 @@ else:
     print("Connecting to heroku database....")
     app.debug = False
     connect_str = "postgres://qoejffwkpfrdea:1298e48ce6930ce8ec940ce92dad68901192437fa4657433fead5c3e1b6f1e72@ec2-34-197-188-147.compute-1.amazonaws.com:5432/dgm2meafa3qhi"
+    # dbopen = subprocess.Popen('heroku config:get DATABASE_URL -a stocksinvestmentsandroi', stdout=subprocess.PIPE)
+    # connect_str = dbopen.stdoout.read().decode('utf-8').strip() + '?sslmode=require'
     # app.config['SQLALCHEMY_DATABASE_URI'] = connect_str
 # Remove tracking modifications
 # app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -91,24 +94,28 @@ def sp500():
 @app.route("/getstock_data")
 def stockdata():
     print("Server received request for 'getstock_data' data collection page...")
-    import psycopg2
-    conn = psycopg2.connect(database = db_name, user = "postgres", password=db_pass, host=db_host, port=db_port)
-    command = (
-    """
-    create table if not exists stock_daily (
-        stock_date  timestamp,
-        open double precision,
-        high double precision,
-        low double precision,
-        close double precision,
-        volume bigint,
-        stock_symbol varchar(10)
-    )
-    """
-    )
-    cur = conn.cursor()
-    cur.execute(command)
-    conn.commit()
+    # This is not required for keroku postgres db as we created empty table structure when setting up heroku
+    if ENV == "development":
+        print("Running create table if not exists only for local database")
+        import psycopg2
+        conn = psycopg2.connect(database = db_name, user = "postgres", password=db_pass, host=db_host, port=db_port)
+        command = (
+        """
+        create table if not exists stock_daily (
+            stock_date  timestamp,
+            open double precision,
+            high double precision,
+            low double precision,
+            close double precision,
+            volume bigint,
+            stock_symbol varchar(10)
+        )
+        """
+        )
+        cur = conn.cursor()
+        cur.execute(command)
+        conn.commit()
+    print("Finding pending stock symbol to be imported using API call")
     pending_symbol = pd.read_sql("select distinct symbol from sp500 where not exists (select 1 from stock_daily where stock_symbol = symbol)", connection)
     # up to 5 API requests per minute and 500 requests per day
     err_cnt = 0
@@ -164,6 +171,7 @@ def stockdata():
     print(f"End of processing {index+1} records in {round((time.time()-start_time)/60,4)} minutes!!! ")
     print(f"There are {err_cnt} records ends with error")
     print(" ")
+
     return (
         f" <br/>"
         f"End of processing {index+1} records in {round((time.time()-start_time)/60,4)} minutes!!! "
