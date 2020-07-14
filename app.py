@@ -9,6 +9,7 @@ import logging
 import sqlalchemy
 import os
 import psycopg2
+from dateutil.relativedelta import relativedelta
 from flask import Flask, render_template, jsonify
 from sqlalchemy import create_engine, MetaData, text
 warnings.filterwarnings('ignore')
@@ -142,6 +143,9 @@ def stockdata():
             results_df2["company"] = row['symbol']
             results_df2.reset_index(inplace=True)
             results_df2.columns=['stock_date', 'open', 'high', 'low', 'close', 'volume','stock_symbol']
+            results_df2['stock_date'] = pd.to_datetime(results_df2['stock_date'], format='%Y-%m-%d')
+            # filtering only past 10 years of data just to reduce Heroku data load time
+            results_df3 = results_df2[results_df2['stock_date'] > results_df2['stock_date'].max()+relativedelta(years=-10)]
             stock_type = {"stock_date": sqlalchemy.DateTime(), 
                 "open": sqlalchemy.types.Float(precision=5, asdecimal=True), 
                 "high": sqlalchemy.types.Float(precision=5, asdecimal=True), 
@@ -150,10 +154,10 @@ def stockdata():
                 "volume": sqlalchemy.types.BigInteger(),
                 "stock_symbol": sqlalchemy.types.VARCHAR(length=10),
                 }
-            dcnt = results_df2['open'].count()
+            dcnt = results_df3['open'].count()
             if dcnt > 0:
-                print("Dataframe completed, and now pushing to the database")
-                results_df2.to_sql(name="stock_daily", con=engine, if_exists='append', index=False, dtype=stock_type)
+                print(f"Dataframe completed, and now pushing symbol {row['symbol']} [{dcnt} rows] to the database")
+                results_df3.to_sql(name="stock_daily", con=engine, if_exists='append', index=False, dtype=stock_type)
                 print("Records pushed to the database and going to process next stock symbol...")
         except Exception as e:
             logger.error('Failed to retreive stock data for the symbol:'+ row['symbol'] + ' Error : ' + str(e))
