@@ -199,7 +199,7 @@ def stockdata():
 # to be run after /getstock_data route
 @app.route("/create_views")
 def views():
-    print("Server received request for 'Create views and performance table..' page...")
+    print("Server received request for 'Create views' page...")
     sfile = open('dbscripts/create_perf_views.sql')
     dbscript = sqlalchemy.text(sfile.read())
     engine.execute(dbscript)
@@ -232,12 +232,23 @@ def views():
 # Run after /create_views route
 @app.route("/create_stock_performance")
 def basetable():
+    print("Server received request for 'Create stock performance table' page...")
     sfile = open('dbscripts/create_stock_performance.sql')
     dbscript = sqlalchemy.text(sfile.read())
     engine.execute(dbscript)
     return(
         f"<br/>"
         f"stock_performance table created..."
+        f"<br/>"
+    )
+
+@app.route("/delete_stockdata")
+def delete_stockdata():
+    print("Server received request for 'Delete stock data' page...")
+    engine.execute(text("truncate table stock_daily").execution_options(autocommit=True))
+    return(
+        f"<br/>"
+        f"stock_daily table data deleted..."
         f"<br/>"
     )
 
