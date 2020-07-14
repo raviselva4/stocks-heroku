@@ -28,7 +28,9 @@ URL :  https://stocksinvestmentsandroi.herokuapp.com
 ### To get latest data update
 
 1) Run route /sp500                     - to get latest master data
-2) Run route /getstock_data             - to get daily stock data (takes longer to update)
-3) Run route /create_views              - base view to create stock_performance table (only required if the table get dropped)
-4) Run route /create_stock_performance  - to create stock_performance table
+2) Run route /delete_stockdata          - run this only if you want to delete all old data
+3) Run route /getstock_data             - to get daily stock data (takes longer to update)
+                                           [Note: this route updates data only if there are no records for the symbol]
+4) Run route /create_views              - base view to create stock_performance table (only required if the table get dropped)
+5) Run route /create_stock_performance  - to create stock_performance table
 
