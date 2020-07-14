@@ -41,7 +41,8 @@ if ENV == "development":
 else:
     print("Connecting to heroku database....")
     app.debug = False
-    connect_str = "postgres://qoejffwkpfrdea:1298e48ce6930ce8ec940ce92dad68901192437fa4657433fead5c3e1b6f1e72@ec2-34-197-188-147.compute-1.amazonaws.com:5432/dgm2meafa3qhi"
+    connect_str = os.environ.get('DATABASE_URL', '')
+    # print(f"Connect String {connect_str}")
     # dbopen = subprocess.Popen('heroku config:get DATABASE_URL -a stocksinvestmentsandroi', stdout=subprocess.PIPE)
     # connect_str = dbopen.stdoout.read().decode('utf-8').strip() + '?sslmode=require'
     # app.config['SQLALCHEMY_DATABASE_URI'] = connect_str
