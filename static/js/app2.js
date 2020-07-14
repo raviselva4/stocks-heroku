@@ -1,7 +1,8 @@
 
 // Read the URL to collect and display the top 20 companies using flask
 
-  url4 = "http://127.0.0.1:5000/allsecurity_performance";
+  // url4 = "http://127.0.0.1:5000/allsecurity_performance";
+  url4 = "/allsecurity_performance";
   console.log(url4);
   d3.json(url4).then(function(top20) 
   {
@@ -22,7 +23,8 @@
   
 //Read the URL to collect and display the sector information in the industry dropdown
 
-url = "http://127.0.0.1:5000/sector"
+// url = "http://127.0.0.1:5000/sector"
+url = "/sector"
 console.log(url);
   d3.json(url).then(function(sectorData) 
   {
@@ -98,7 +100,8 @@ console.log(url);
 
       function showSymbol(inputSector,Company) 
       {
-        url2 = "http://127.0.0.1:5000/sector_symbol"
+        // url2 = "http://127.0.0.1:5000/sector_symbol"
+        url2 = "/sector_symbol"
         console.log(url);
         console.log(inputSector);
         console.log(Company);
@@ -254,7 +257,8 @@ function handlefilter(event)
 // Take years as input and calculate the ROI
   InputYears = yearsSelect.property("value");
 
-  url3 = "http://127.0.0.1:5000/allsecurity_performance"
+  // url3 = "http://127.0.0.1:5000/allsecurity_performance"
+  url3 = "/allsecurity_performance"
   console.log(url3);
   d3.json(url3).then(function(allperformance) 
         {
