@@ -9,9 +9,10 @@ import logging
 import sqlalchemy
 import os
 import psycopg2
+from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from flask import Flask, render_template, jsonify
-from sqlalchemy import create_engine, MetaData, text
+from sqlalchemy import create_engine, MetaData, text, event
 warnings.filterwarnings('ignore')
 from pprint import pprint
 # from config import *
@@ -49,7 +50,16 @@ else:
 # Remove tracking modifications
 # app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-engine = create_engine(connect_str)
+# engine = create_engine(connect_str, isolation_level="AUTOCOMMIT")
+# engine = create_engine(connect_str, fast_executemany=True)
+engine = create_engine(connect_str, use_batch_mode=True)
+# optimization
+# @event.listens_for(engine, 'before_cursor_execute')
+# def receive_before_cursor_execute(conn, cursor, statement, params, context, executemany):
+#     if executemany:
+#         cursor.fast_executemany = True
+#         cursor.commit()
+
 connection = engine.connect()
 
 #################################################
@@ -119,16 +129,17 @@ def stockdata():
         cur = conn.cursor()
         cur.execute(command)
         conn.commit()
-    print("Finding pending stock symbol to be imported using API call")
-    pending_symbol = pd.read_sql("select distinct symbol from sp500 where not exists (select 1 from stock_daily where stock_symbol = symbol)", connection)
+    print("Finding new stock symbol to be imported using API call")
+    new_symbol = pd.read_sql("select distinct symbol from sp500 where not exists (select 1 from stock_daily where stock_symbol = symbol)", connection)
     # up to 5 API requests per minute and 500 requests per day
     err_cnt = 0
     rec_cnt = 0
+    tot_cnt = 0
     err_symbol = []
     start_time = time.time()
     etime = time.time() + 60
-    for index, row in pending_symbol.iterrows():
-        rec_cnt += 1;
+    for index, row in new_symbol.iterrows():
+        rec_cnt += 1
         print(index, row['symbol'], rec_cnt)
         try:
             print(f"Retrieving Stock data from Alphavantage website for the symbol {row['symbol']}")
@@ -137,7 +148,7 @@ def stockdata():
             # print(query_url)
             response = requests.get(query_url).json()
             time.sleep(13)
-            print("Request completed, converting to dataframe and trying to push it to the database")
+            print("Request completed, converting to dataframe")
             result_dict=response["Time Series (Daily)"]
             results_df=pd.DataFrame(result_dict)
             results_df2 = results_df.transpose()
@@ -145,8 +156,13 @@ def stockdata():
             results_df2.reset_index(inplace=True)
             results_df2.columns=['stock_date', 'open', 'high', 'low', 'close', 'volume','stock_symbol']
             results_df2['stock_date'] = pd.to_datetime(results_df2['stock_date'], format='%Y-%m-%d')
-            # filtering only past 10 years of data just to reduce Heroku data load time
-            results_df3 = results_df2[results_df2['stock_date'] > results_df2['stock_date'].max()+relativedelta(years=-10)]
+            if ENV == "development":
+                print("No filter for local db")
+                results_df3 = results_df2
+            else:
+                # filtering only past 10 years of data just to reduce Heroku data load time
+                print("Filtering only 10 years of data for Heroku db")
+                results_df3 = results_df2[results_df2['stock_date'] > results_df2['stock_date'].max()+relativedelta(years=-10)]
             stock_type = {"stock_date": sqlalchemy.DateTime(), 
                 "open": sqlalchemy.types.Float(precision=5, asdecimal=True), 
                 "high": sqlalchemy.types.Float(precision=5, asdecimal=True), 
@@ -157,13 +173,15 @@ def stockdata():
                 }
             dcnt = results_df3['open'].count()
             if dcnt > 0:
-                print(f"Dataframe completed, and now pushing symbol {row['symbol']} [{dcnt} rows] to the database")
+                print(f"Dataframe completed for new symbol, and now pushing symbol {row['symbol']} [{dcnt} rows] to the database")
+                print(datetime.now().strftime("%m/%d/%Y %H:%M:%S"))
                 results_df3.to_sql(name="stock_daily", con=engine, if_exists='append', index=False, dtype=stock_type)
                 print("Records pushed to the database and going to process next stock symbol...")
+                print(datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
         except Exception as e:
-            logger.error('Failed to retreive stock data for the symbol:'+ row['symbol'] + ' Error : ' + str(e))
+            logger.error('Failed Symbol:'+ row['symbol'] + ' Error Info.: ' + str(e))
             err_symbol.append(row['symbol'])
-            err_cnt += 1;
+            err_cnt += 1
         print(time.time()-start_time)
         print(etime-time.time())
         sleep_sec = etime-time.time()
@@ -174,19 +192,81 @@ def stockdata():
                 time.sleep(sleep_sec)
                 etime = time.time() + 60
         if index > 498:
+            tot_cnt = index+1
             print("Reached maximum limit of 500 rows, existing the for loop...")
             mes="Reached maximum limit of 500 rows, existing the for loop..."
             break
-    print(" ")
-    print(f"End of processing {index+1} records in {round((time.time()-start_time)/60,4)} minutes!!! ")
-    print(f"There are {err_cnt} records ends with error")
-    print(" ")
 
+    print("Finding existing stock symbol to be imported using API call and update as of today")
+    err_cnt2 = 0
+    if tot_cnt < 499:
+        # API brings no time in the data field so it's effective to check lessthan 'today'::timestamp...
+        upd_symbol = pd.read_sql("select a.symbol,max(b.stock_date) max_date from sp500 a join stock_daily b on b.stock_symbol = a.symbol group by a.symbol having max(b.stock_date) < 'today'::timestamp", connection)
+        for index, row in upd_symbol.iterrows():
+            rec_cnt += 1
+            print(index, row['symbol'], rec_cnt)
+            try:
+                print(f"Retrieving existing Stock data for update from Alphavantage website for the symbol {row['symbol']}")
+                symbol = "&symbol="+row['symbol']
+                query_url = url+function+key+symbol+output
+                # print(query_url)
+                response = requests.get(query_url).json()
+                time.sleep(13)
+                print("Request completed, converting to dataframe")
+                result_dict=response["Time Series (Daily)"]
+                results_df=pd.DataFrame(result_dict)
+                results_df2 = results_df.transpose()
+                results_df2["company"] = row['symbol']
+                results_df2.reset_index(inplace=True)
+                results_df2.columns=['stock_date', 'open', 'high', 'low', 'close', 'volume','stock_symbol']
+                results_df2['stock_date'] = pd.to_datetime(results_df2['stock_date'], format='%Y-%m-%d')
+                # filtering by max date
+                results_df3 = results_df2[results_df2['stock_date'] > row['max_date']]
+                stock_type = {"stock_date": sqlalchemy.DateTime(), 
+                    "open": sqlalchemy.types.Float(precision=5, asdecimal=True), 
+                    "high": sqlalchemy.types.Float(precision=5, asdecimal=True), 
+                    "low": sqlalchemy.types.Float(precision=5, asdecimal=True),
+                    "close": sqlalchemy.types.Float(precision=5, asdecimal=True),
+                    "volume": sqlalchemy.types.BigInteger(),
+                    "stock_symbol": sqlalchemy.types.VARCHAR(length=10),
+                    }
+                dcnt = results_df3['open'].count()
+                if dcnt > 0:
+                    print(f"Dataframe completed for update symbol, and now pushing symbol {row['symbol']} [{dcnt} rows] to the database")
+                    print(datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
+                    results_df3.to_sql(name="stock_daily", con=engine, if_exists='append', index=False, dtype=stock_type)
+                    print(datetime.now().strftime("%m/%d/%Y %H:%M:%S"))
+                    print("Records pushed to the database and going to process next update stock symbol...")
+                else:
+                    print(f"No records found after filtering. Skipping symbol {row['symbol']}...")
+            except Exception as e:
+                logger.error('Failed Symbol:'+ row['symbol'] + ' Error Info.: ' + str(e))
+                err_symbol.append(row['symbol'])
+                err_cnt2 += 1
+            print(time.time()-start_time)
+            print(etime-time.time())
+            sleep_sec = etime-time.time()
+            if rec_cnt == 5:
+                rec_cnt = 0
+                if sleep_sec > 0:
+                    print(f"API 5 calls/minute limit reached...  sleeping for {sleep_sec} seconds")
+                    time.sleep(sleep_sec)
+                    etime = time.time() + 60
+            if (tot_cnt+index) > 498:
+                tot_cnt += index+1
+                print("Reached maximum limit of 500 rows, existing the for loop...")
+                mes="Reached maximum limit of 500 rows, existing the for loop..."
+                break
+    print(" ")
+    print(f"End of processing {tot_cnt} records in {round((time.time()-start_time)/60,4)} minutes!!! ")
+    print(f"There are {err_cnt} records ends with error for new symbols and {err_cnt2} records ends with error on update symbols")
+    print(" ")
+    
     return (
         f" <br/>"
-        f"End of processing {index+1} records in {round((time.time()-start_time)/60,4)} minutes!!! "
+        f"End of processing {tot_cnt} records in {round((time.time()-start_time)/60,4)} minutes!!! "
         f" <br/>"
-        f"No. of records ends with error: {err_cnt}  "
+        f"No. of records ends with error: {err_cnt} for new symbol download and {err_cnt2} records for update symbols "
         f" <br/>"
         f"Here are the list of symbol(s) ends with error: {err_symbol}  <br/>"
         f" <br/>"
@@ -242,6 +322,7 @@ def basetable():
         f"<br/>"
     )
 
+# To delete all stock daily data if case of complete maintenance or api structure change
 @app.route("/delete_stockdata")
 def delete_stockdata():
     print("Server received request for 'Delete stock data' page...")

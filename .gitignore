@@ -5,3 +5,4 @@ __pycache__
 env.sh
 sp
 blocking_qry.sql
+logs

@@ -18,7 +18,8 @@ URL :  https://stocksinvestmentsandroi.herokuapp.com
 
 ### Data Volume
 
-20 years of Stock daily data (2.25 million rows)
+For Heroku postgres we restrict only 10 years of Stock daily data (1.3 million rows)
+There is no restriction for local postgres database and you can keep 20 years of data (2.25 million rows)
 
 ### Visualiztion used
 
@@ -29,8 +30,8 @@ URL :  https://stocksinvestmentsandroi.herokuapp.com
 
 1) Run route /sp500                     - to get latest master data
 2) Run route /delete_stockdata          - run this only if you want to delete all old data
-3) Run route /getstock_data             - to get daily stock data (takes longer to update)
-                                           [Note: this route updates data only if there are no records for the symbol]
+3) Run route /getstock_data             - to get daily stock data
 4) Run route /create_views              - base view to create stock_performance table (only required if the table get dropped)
 5) Run route /create_stock_performance  - to create stock_performance table
+6) Run route /delete_stockdata          - run if required to delete all stock daily data
 
